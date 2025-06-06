@@ -44,6 +44,16 @@ export default function Dashboard() {
     fetchProjects();
   }, [user]);
 
+  const removeProject = (projectId: string) => {
+    setProjects((prevProjects) =>
+      prevProjects.filter((project) =>
+        project.id.includes(':')
+          ? project.id.split(':')[1] !== projectId
+          : project.id !== projectId
+      )
+    );
+  };
+
   if (!user) {
     return <div className={styles.container}>Please sign in to view your projects</div>;
   }
@@ -61,11 +71,11 @@ export default function Dashboard() {
       <h1 className={styles.title}>Your Projects</h1>
       <div className={styles.projectsGrid}>
         {projects.map((project) => (
-          <ProjectCard key={project.id} project={project} />
+          <ProjectCard key={project.id} project={project} removeProject={removeProject} />
         ))}
         <div
           className={styles.addProjectCard}
-          onClick={() => router.push("/dashboard/new-project")}
+          onClick={() => router.push("/dashboard/create-project")}
         >
           <Plus className={styles.addIcon} />
           <span className={styles.addText}>Create New Project</span>

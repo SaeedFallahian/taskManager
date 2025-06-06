@@ -15,7 +15,12 @@ type Project = {
   deadline: string;
 };
 
-export default function ProjectCard({ project }: { project: Project }) {
+type ProjectCardProps = {
+  project: Project;
+  removeProject: (projectId: string) => void;
+};
+
+export default function ProjectCard({ project, removeProject }: ProjectCardProps) {
   const router = useRouter();
   const { user } = useUser();
 
@@ -42,8 +47,7 @@ export default function ProjectCard({ project }: { project: Project }) {
         const error = await res.json();
         throw new Error(error.details || "Failed to delete project");
       }
-      router.refresh();
-      alert("Project deleted successfully");
+      removeProject(projectId);
     } catch (error: any) {
       console.error('Client-side DELETE error:', error.message);
       alert(`Error: ${error.message}`);
