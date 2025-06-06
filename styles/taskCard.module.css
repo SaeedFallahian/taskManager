@@ -1,0 +1,21 @@
+.card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+}
+
+.title {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.status {
+  color: #2b6cb0;
+  margin-bottom: 0.5rem;
+}
+
+.assigned {
+  color: #4a5568;
+}
