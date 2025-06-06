@@ -75,7 +75,7 @@ export default function Dashboard() {
         ))}
         <div
           className={styles.addProjectCard}
-          onClick={() => router.push("/dashboard/create-project")}
+          onClick={() => router.push("/dashboard/new-project")}
         >
           <Plus className={styles.addIcon} />
           <span className={styles.addText}>Create New Project</span>
@@ -83,4 +83,4 @@ export default function Dashboard() {
       </div>
     </div>
   );
-}
+}    "test"
