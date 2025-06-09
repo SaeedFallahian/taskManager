@@ -12,6 +12,7 @@ type Project = {
   authorName: string;
   created_at: string;
   deadline: string;
+  progress: number;
 };
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -30,6 +31,13 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
+    // Calculate progress
+    const totalTasksResult = await db.query<{ count: number }[]>(`SELECT count() as count FROM tasks WHERE project = projects:${id}`);
+    const completedTasksResult = await db.query<{ count: number }[]>(`SELECT count() as count FROM tasks WHERE project = projects:${id} AND status = 'completed'`);
+    const totalTasks = Array.isArray(totalTasksResult[0]) ? totalTasksResult[0][0]?.count || 0 : totalTasksResult[0]?.count || 0;
+    const completedTasks = Array.isArray(completedTasksResult[0]) ? completedTasksResult[0][0]?.count || 0 : completedTasksResult[0]?.count || 0;
+    const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+
     const clerk = await clerkClient();
     const clerkUser = await clerk.users.getUser(project.author);
     const authorName =
@@ -40,7 +48,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         ? clerkUser.emailAddresses[0].emailAddress
         : 'Unknown User');
 
-    return NextResponse.json({ ...project, authorName }, { status: 200 });
+    return NextResponse.json({ ...project, authorName, progress }, { status: 200 });
   } catch (error: any) {
     console.error('GET PROJECT ERROR:', {
       message: error.message,

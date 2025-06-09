@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     }
 
     // Validate deadline
-    if (new Date(deadline) > new Date(project.deadline as string )) {
+    if (new Date(deadline) > new Date(project.deadline as string)) {
       return NextResponse.json({ error: 'Task deadline cannot be after project deadline' }, { status: 400 });
     }
 
@@ -112,6 +112,45 @@ export async function GET(req: Request) {
     console.error('FETCH TASKS ERROR =>', error.message);
     return NextResponse.json(
       { error: 'Failed to fetch tasks', details: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(req: Request) {
+  try {
+    const user = await currentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'User not authenticated' }, { status: 401 });
+    }
+
+    const { id, status } = await req.json();
+    if (!id || !status) {
+      return NextResponse.json({ error: 'Task ID and status are required' }, { status: 400 });
+    }
+    if (!['pending', 'in_progress', 'completed'].includes(status)) {
+      return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
+    }
+
+    await connectDB();
+    const taskId = new RecordId('tasks', id);
+    const task = await db.select<Task>(taskId);
+    if (!task) {
+      return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+    }
+
+    // Check if user is the project author
+    const project = await db.select(new RecordId('projects', task.project.split(':')[1]));
+    if (!project || project.author !== user.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
+
+    const updatedTask = await db.merge(taskId, { status });
+    return NextResponse.json(updatedTask, { status: 200 });
+  } catch (error: any) {
+    console.error('UPDATE TASK ERROR =>', error.message);
+    return NextResponse.json(
+      { error: 'Failed to update task', details: error.message },
       { status: 500 }
     );
   }

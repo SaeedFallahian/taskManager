@@ -25,7 +25,7 @@ const Header: React.FC = () => {
     <header className={`${styles.header} ${isScrolled ? styles.scrolled : ''}`}>
       <nav className={styles.nav}>
         <div className={styles.logoContainer}>
-          <Image src="/logo.png" alt="Task Manager Logo" width={40} height={40} />
+          <Image src="/tasks.png" alt="Task Manager Logo" width={40} height={40} />
           <h1 className={styles.logoText}>Task Manager</h1>
         </div>
 

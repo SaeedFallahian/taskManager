@@ -13,14 +13,18 @@ type Project = {
   authorName: string;
   created_at: string;
   deadline: string;
+  progress: number;
+  taskCount: number;
+  completedTaskCount: number; // Added for completed task count
 };
 
 type ProjectCardProps = {
   project: Project;
   removeProject: (projectId: string) => void;
+  refreshProjects: () => void;
 };
 
-export default function ProjectCard({ project, removeProject }: ProjectCardProps) {
+export default function ProjectCard({ project, removeProject, refreshProjects }: ProjectCardProps) {
   const router = useRouter();
   const { user } = useUser();
 
@@ -70,6 +74,17 @@ export default function ProjectCard({ project, removeProject }: ProjectCardProps
         <p className={styles.meta}>
           <strong>Deadline:</strong> {new Date(project.deadline).toLocaleDateString('en-US')}
         </p>
+        <p className={styles.meta}>
+        </p>
+        <p className={styles.meta}>
+          <strong>Tasks:</strong> {project.taskCount} ({project.completedTaskCount} completed)
+        </p>
+        <div className={styles.progressBar}>
+          <div
+            className={styles.progressFill}
+            style={{ width: `${project.progress}%` }}
+          ></div>
+        </div>
       </div>
       <div className={styles.buttonGroup}>
         <button className={styles.viewButton} onClick={handleViewDetails}>

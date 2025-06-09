@@ -14,6 +14,7 @@ type Project = {
   authorName: string;
   created_at: string;
   deadline: string;
+  progress: number;
 };
 
 type Task = {
@@ -50,26 +51,28 @@ export default function ProjectDetails() {
     async function fetchData() {
       try {
         // Fetch project
-        const projectRes = await fetch(`/api/projects/${id}`);
+        const projectRes = await fetch(`/api/projects/${id}`, { cache: 'no-store' });
         if (!projectRes.ok) {
           throw new Error("Project not found");
         }
         const projectData = await projectRes.json();
+        console.log('Fetched project:', projectData);
         setProject(projectData);
 
         // Fetch tasks
-        const tasksRes = await fetch(`/api/tasks?projectId=${id}`);
+        const tasksRes = await fetch(`/api/tasks?projectId=${id}`, { cache: 'no-store' });
         if (!tasksRes.ok) {
           throw new Error("Failed to fetch tasks");
         }
         const tasksData = await tasksRes.json();
+        console.log('Fetched tasks:', tasksData);
         setTasks(tasksData.map((task: Task) => ({
           ...task,
           id: task.id.split(':')[1] || task.id,
         })));
 
         // Fetch users
-        const usersRes = await fetch('/api/users');
+        const usersRes = await fetch('/api/users', { cache: 'no-store' });
         if (!usersRes.ok) {
           throw new Error("Failed to fetch users");
         }
@@ -89,6 +92,13 @@ export default function ProjectDetails() {
     e.preventDefault();
     setError("");
     try {
+      console.log('Creating task with:', {
+        title: newTaskTitle,
+        description: newTaskDescription,
+        projectId: id,
+        deadline: newTaskDeadline,
+        assignee: newTaskAssignee,
+      });
       const res = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -105,6 +115,7 @@ export default function ProjectDetails() {
         throw new Error(errorData.error || "Failed to create task");
       }
       const newTaskData = await res.json();
+      console.log('New task created:', newTaskData);
       const newTask = Array.isArray(newTaskData) && newTaskData.length > 0 ? newTaskData[0] : newTaskData;
       setTasks([
         ...tasks,
@@ -119,17 +130,24 @@ export default function ProjectDetails() {
           assigneeName: users.find(u => u.id === newTask.assignee)?.name || "Unknown User",
         },
       ]);
+      // Refresh projects to update progress
+      const projectsRes = await fetch("/api/projects", { cache: 'no-store' });
+      if (projectsRes.ok) {
+        router.push('/dashboard');
+      }
       setNewTaskTitle("");
       setNewTaskDescription("");
       setNewTaskDeadline("");
       setNewTaskAssignee("");
     } catch (err: any) {
+      console.error('Add task error:', err.message);
       setError(err.message);
     }
   }
 
   async function handleStatusChange(taskId: string, newStatus: string) {
     try {
+      console.log('Updating task with ID:', taskId, 'to status:', newStatus);
       const res = await fetch(`/api/tasks/${taskId}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -140,11 +158,22 @@ export default function ProjectDetails() {
         throw new Error(errorData.error || "Failed to update task status");
       }
       const updatedTaskData = await res.json();
+      console.log('Updated task response:', updatedTaskData);
       const updatedTask = Array.isArray(updatedTaskData) && updatedTaskData.length > 0 ? updatedTaskData[0] : updatedTaskData;
       setTasks(tasks.map(task =>
         task.id === taskId ? { ...task, status: updatedTask.status } : task
       ));
+      // Refresh projects to update progress
+      const projectsRes = await fetch("/api/projects", { cache: 'no-store' });
+      if (projectsRes.ok) {
+        const projectsData = await projectsRes.json();
+        console.log('Refreshed projects:', projectsData);
+        router.push('/dashboard');
+      } else {
+        throw new Error("Failed to refresh projects");
+      }
     } catch (err: any) {
+      console.error('Status change error:', err.message);
       setError(err.message);
     }
   }
@@ -179,6 +208,7 @@ export default function ProjectDetails() {
         <p className={styles.author}><strong>Author:</strong> {project?.authorName}</p>
         <p className={styles.date}><strong>Created At:</strong> {new Date(project?.created_at || '').toLocaleDateString()}</p>
         <p className={styles.date}><strong>Deadline:</strong> {new Date(project?.deadline || '').toLocaleDateString()}</p>
+        <p className={styles.date}><strong>Progress:</strong> {project ? Math.round(project.progress) : 0}%</p>
       </div>
       <h2 className={styles.tasksTitle}>Tasks</h2>
       <div className={styles.tasksContainer}>

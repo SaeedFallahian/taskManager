@@ -4,7 +4,7 @@
   padding: 1.5rem;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
-  height: 320px;
+  height: 340px; /* Increased height to accommodate progress bar */
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -44,6 +44,21 @@
 
 .meta strong {
   color: #1f2937;
+}
+
+.progressBar {
+  width: 100%;
+  height: 8px;
+  background-color: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+
+.progressFill {
+  height: 100%;
+  background-color: #10b981;
+  transition: width 0.3s ease;
 }
 
 .buttonGroup {
